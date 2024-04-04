@@ -1,0 +1,43 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: Build and test
+
+on:
+  push:
+    branches: [ "main" ]
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [ 16.x, 18.x, 20.x ]
+        nest-version: [ ^8.0.0, ^10.0.0 ]
+        mongo-version: [ ^4.0.0, ^5.0.0, ^6.0.0 ]
+    name: Node ${{ matrix.node-version }} - Nest ${{ matrix.nest-version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: latest
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install peer dependencies
+        run: pnpm add @nestjs/common@${{ matrix.nest-version }} @nestjs/core@${{ matrix.nest-version }} mongodb@${{ matrix.mongo-version }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Test
+        run: pnpm run test
