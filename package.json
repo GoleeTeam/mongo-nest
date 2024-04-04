@@ -1,14 +1,12 @@
 {
     "name": "@golee/mongo-nest",
     "version": "0.0.1",
-    "description": "",
+    "description": "Embrace the freedom to use mongodb on nest without necessarily resorting to mongoose 🍃",
     "author": "Gabriele Toselli <gabriele.toselli@golee.it>",
     "license": "MIT",
     "main": "dist/index",
     "types": "dist/index.d.ts",
-    "publishConfig": {
-        "access": "public"
-    },
+    "private": false,
     "keywords": [
         "nest",
         "mongodb",

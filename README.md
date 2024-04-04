@@ -1,8 +1,6 @@
 # Mongo Nest
 
-## Description
-
-This simple library allows you to use mongodb without carrying around the infamous mongoose ✨.
+Embrace the freedom to use mongodb on nest without necessarily resorting to mongoose 🍃
 
 ### Installation
 

@@ -72,7 +72,7 @@ jobs:
       - name: Build and Publish
         run: pnpm publish
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_2 }}
 
       - name: Push Commit
         run: git push --follow-tags
