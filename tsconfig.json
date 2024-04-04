@@ -11,12 +11,6 @@
         "outDir": "./dist",
         "baseUrl": "./",
         "incremental": true,
-        "skipLibCheck": true,
-        "strictNullChecks": true,
-        // FIXME "noImplicitAny": true,
-        "noImplicitAny": false,
-        "strictBindCallApply": true,
-        "forceConsistentCasingInFileNames": true,
-        "noFallthroughCasesInSwitch": true
+        "strictNullChecks": true
     }
 }
