@@ -34,7 +34,7 @@
         "@nestjs/common": "^10.3.3",
         "@nestjs/core": "^10.3.3",
         "@nestjs/testing": ">=8.0.0",
-        "mongodb": "^4.17.2",
+        "mongodb": "^6.5.0",
         "mongodb-memory-server": "^9.1.8",
         "@types/jest": "^29.5.2",
         "@types/node": "^18.19.29",
