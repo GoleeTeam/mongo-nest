@@ -37,7 +37,7 @@
         "mongodb": "^4.17.2",
         "mongodb-memory-server": "^9.1.8",
         "@types/jest": "^29.5.2",
-        "@types/node": "^18.19.29",
+        "@types/node": "^20.12.7",
         "@typescript-eslint/eslint-plugin": "^6.18.1",
         "@typescript-eslint/parser": "^6.18.1",
         "cspell": "^8.3.2",
