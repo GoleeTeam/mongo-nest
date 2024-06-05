@@ -24,7 +24,6 @@
         "prepare": "husky install",
         "check": "cspell lint --quiet src/**/*ts"
     },
-    "packageManager": "^pnpm@8.15.5",
     "dependencies": {},
     "peerDependencies": {
         "@nestjs/common": "^9.0.0 || ^10.0.0",
