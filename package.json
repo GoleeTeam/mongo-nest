@@ -2,7 +2,7 @@
     "name": "@golee/mongo-nest",
     "version": "0.0.7",
     "description": "Embrace the freedom to use mongodb on nest without necessarily resorting to mongoose 🍃",
-    "author": "Gabriele Toselli <gabriele.toselli@golee.it>",
+    "author": "Golee Team <dev@golee.it>",
     "license": "Apache-2.0",
     "publishConfig": {
         "access": "public"
@@ -15,6 +15,10 @@
         "mongodb",
         "mongo"
     ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/GoleeTeam/mongo-nest.git"
+    },
     "scripts": {
         "build": "rimraf dist && tsc --project tsconfig.build.json",
         "test": "jest",
