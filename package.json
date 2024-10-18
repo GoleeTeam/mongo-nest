@@ -1,6 +1,6 @@
 {
     "name": "@golee/mongo-nest",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "description": "Embrace the freedom to use mongodb on nest without necessarily resorting to mongoose 🍃",
     "author": "Gabriele Toselli <gabriele.toselli@golee.it>",
     "license": "Apache-2.0",
@@ -18,7 +18,6 @@
     "scripts": {
         "build": "rimraf dist && tsc --project tsconfig.build.json",
         "test": "jest",
-        "test:ci": "jest --config jest-ci.json",
         "test:coverage": "jest --coverage",
         "prepublishOnly": "npm run build",
         "prepare": "husky install",
