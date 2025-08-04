@@ -1,4 +1,13 @@
-import { DynamicModule, Global, Inject, Module, OnApplicationShutdown, Provider } from '@nestjs/common';
+import {
+    DynamicModule,
+    Global,
+    Inject,
+    Logger,
+    Module,
+    OnApplicationBootstrap,
+    OnApplicationShutdown,
+    Provider,
+} from '@nestjs/common';
 import { MongoClient } from 'mongodb';
 import { ModuleRef } from '@nestjs/core';
 import { MongoModuleAsyncOptions, MongoOptions } from './types';
@@ -14,7 +23,9 @@ export const InjectMongo = (mongoName?: string) => Inject(getMongoToken(mongoNam
 
 @Global()
 @Module({})
-export class MongoModule implements OnApplicationShutdown {
+export class MongoModule implements OnApplicationBootstrap, OnApplicationShutdown {
+    private static logger = new Logger(MongoModule.name);
+
     constructor(
         private readonly moduleRef: ModuleRef,
         @Inject(MONGO_NAME_TOKEN) private readonly mongoName: string,
@@ -28,12 +39,14 @@ export class MongoModule implements OnApplicationShutdown {
             useValue: mongoName,
         };
 
-        const MongoClientProvider = {
+        const MongoClientProvider: Provider = {
             provide: this.getMongoToken(mongoName),
             useFactory: async (): Promise<any> => {
                 return await new MongoClient(options.uri, options.mongoOptions).connect();
             },
         };
+
+        MongoModule.logger.log(`Configuring, client options: ${JSON.stringify(options.mongoOptions)}`);
         return {
             module: MongoModule,
             providers: [MongoClientProvider, ConnectionNameProvider],
@@ -64,6 +77,16 @@ export class MongoModule implements OnApplicationShutdown {
         };
     }
 
+    async onApplicationBootstrap() {
+        MongoModule.logger.log(`Connecting: ${this.mongoName}`);
+    }
+
+    async onApplicationShutdown() {
+        MongoModule.logger.log(`Disconnecting: ${this.mongoName}`);
+        const client = this.moduleRef.get<MongoClient>(getMongoToken(this.mongoName));
+        await client.close();
+    }
+
     private static createAsyncOptionsProvider(options: MongoModuleAsyncOptions, connectionName: string): Provider {
         if (!options.useFactory) throw new Error('Missing useFactory in options');
         return {
@@ -79,10 +102,5 @@ export class MongoModule implements OnApplicationShutdown {
 
     private static getMongoToken(mongoName: string) {
         return mongoName;
-    }
-
-    async onApplicationShutdown() {
-        const client = this.moduleRef.get<MongoClient>(getMongoToken(this.mongoName));
-        await client.close();
     }
 }
