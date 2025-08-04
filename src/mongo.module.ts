@@ -26,13 +26,9 @@ export const InjectMongo = (mongoName?: string) => Inject(getMongoToken(mongoNam
 export class MongoModule implements OnApplicationBootstrap, OnApplicationShutdown {
     private static logger = new Logger(MongoModule.name);
 
-    constructor(
-        private readonly moduleRef: ModuleRef,
-        @Inject(MONGO_NAME_TOKEN) private readonly mongoName: string,
-    ) {}
-
     static forRoot(options: MongoOptions): DynamicModule {
         const mongoName = options.mongoName || DEFAULT_MONGO_NAME;
+        const mongoOptions = options.mongoOptions || {};
 
         const ConnectionNameProvider: Provider = {
             provide: MONGO_NAME_TOKEN,
@@ -42,11 +38,11 @@ export class MongoModule implements OnApplicationBootstrap, OnApplicationShutdow
         const MongoClientProvider: Provider = {
             provide: this.getMongoToken(mongoName),
             useFactory: async (): Promise<any> => {
-                return await new MongoClient(options.uri, options.mongoOptions).connect();
+                return await new MongoClient(options.uri, mongoOptions).connect();
             },
         };
 
-        MongoModule.logger.log(`Configuring, client options: ${JSON.stringify(options.mongoOptions)}`);
+        MongoModule.logger.log(`Configuring, name: ${mongoName}, client options: ${JSON.stringify(mongoOptions)}`);
         return {
             module: MongoModule,
             providers: [MongoClientProvider, ConnectionNameProvider],
@@ -76,6 +72,11 @@ export class MongoModule implements OnApplicationBootstrap, OnApplicationShutdow
             exports: [MongoClientProvider],
         };
     }
+
+    constructor(
+        private readonly moduleRef: ModuleRef,
+        @Inject(MONGO_NAME_TOKEN) private readonly mongoName: string,
+    ) {}
 
     async onApplicationBootstrap() {
         MongoModule.logger.log(`Connecting: ${this.mongoName}`);
