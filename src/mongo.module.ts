@@ -104,13 +104,13 @@ export class MongoModule implements OnApplicationBootstrap, OnApplicationShutdow
                 MongoModule.logger.error(`An error occurred. Cause: ${error.message}`);
             })
             .on('close', () => {
-                MongoModule.logger.debug(`Connection closed`);
+                MongoModule.logger.debug(`Client closed`);
             })
             .on('connectionCreated', (_: ConnectionCreatedEvent) => {
                 MongoModule.logger.debug('Connection created');
             })
             .on('connectionClosed', (event: ConnectionClosedEvent) => {
-                MongoModule.logger.debug(`Connection created, reason: ${event.reason}`);
+                MongoModule.logger.debug(`Connection closed, reason: ${event.reason}`);
             });
     }
 
