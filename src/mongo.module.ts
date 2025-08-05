@@ -8,7 +8,7 @@ import {
     OnApplicationShutdown,
     Provider,
 } from '@nestjs/common';
-import { MongoClient } from 'mongodb';
+import { ConnectionClosedEvent, ConnectionCreatedEvent, MongoClient, MongoClientOptions } from 'mongodb';
 import { ModuleRef } from '@nestjs/core';
 import { MongoModuleAsyncOptions, MongoOptions } from './types';
 
@@ -38,7 +38,7 @@ export class MongoModule implements OnApplicationBootstrap, OnApplicationShutdow
         const MongoClientProvider: Provider = {
             provide: this.getMongoToken(mongoName),
             useFactory: async (): Promise<any> => {
-                return await new MongoClient(options.uri, mongoOptions).connect();
+                return await MongoModule.clientOn(options.uri, mongoOptions).connect();
             },
         };
 
@@ -59,7 +59,8 @@ export class MongoModule implements OnApplicationBootstrap, OnApplicationShutdow
         const MongoClientProvider: Provider = {
             provide: this.getMongoToken(mongoName),
             useFactory: async (options: MongoOptions): Promise<any> => {
-                return await new MongoClient(options.uri, options.mongoOptions).connect();
+                const mongoOptions = options.mongoOptions || {};
+                return await MongoModule.clientOn(options.uri, mongoOptions).connect();
             },
             inject: [this.getOptionProviderToken(mongoName)],
         };
@@ -95,6 +96,22 @@ export class MongoModule implements OnApplicationBootstrap, OnApplicationShutdow
             useFactory: options.useFactory,
             inject: options.inject || [],
         };
+    }
+
+    private static clientOn(uri: string, mongoOptions: MongoClientOptions) {
+        return new MongoClient(uri, mongoOptions)
+            .on('error', (error: Error) => {
+                MongoModule.logger.error(`An error occurred. Cause: ${error.message}`);
+            })
+            .on('close', () => {
+                MongoModule.logger.debug(`Connection closed`);
+            })
+            .on('connectionCreated', (_: ConnectionCreatedEvent) => {
+                MongoModule.logger.debug('Connection created');
+            })
+            .on('connectionClosed', (event: ConnectionClosedEvent) => {
+                MongoModule.logger.debug(`Connection created, reason: ${event.reason}`);
+            });
     }
 
     private static getOptionProviderToken(connectionName = DEFAULT_MONGO_NAME): string {
