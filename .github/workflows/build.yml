@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x, 20.x]
-        nest-version: [^9.0.0, ^10.0.0]
+        nest-version: [^8.0.0, ^9.0.0, ^10.0.0]
         mongo-version: [^4.0.0, ^5.0.0, ^6.0.0]
 
     env:
@@ -33,7 +33,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
-          registry-url: "https://registry.npmjs.org"
 
       - name: Dependencies
         run: pnpm install --frozen-lockfile
@@ -80,7 +79,6 @@ jobs:
         with:
           node-version: 20
           cache: "pnpm"
-          registry-url: "https://registry.npmjs.org"
 
       - name: "Release: Prepare"
         run: |
