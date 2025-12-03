@@ -24,7 +24,7 @@
         "test": "jest",
         "test:coverage": "jest --coverage",
         "prepublishOnly": "npm run build",
-        "prepare": "husky install",
+        "prepare": "husky",
         "check": "cspell lint --quiet src/**/*ts"
     },
     "peerDependencies": {
