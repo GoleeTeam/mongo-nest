@@ -1,6 +1,6 @@
 {
     "name": "@golee/mongo-nest",
-    "version": "0.0.22",
+    "version": "0.1.0",
     "description": "Embrace the freedom to use mongodb on nest without necessarily resorting to mongoose 🍃",
     "author": "Golee Team <dev@golee.it>",
     "license": "Apache-2.0",
@@ -81,5 +81,9 @@
     "lint-staged": {
         "*.ts": "eslint --fix",
         "*.json": "prettier --write"
+    },
+    "dependencies": {
+        "@golee/nestjs-otel": "6.2.0-span",
+        "@opentelemetry/api": "^1.9.0"
     }
 }

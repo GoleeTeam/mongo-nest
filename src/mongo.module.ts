@@ -1,3 +1,4 @@
+import { MetricService } from '@golee/nestjs-otel';
 import {
     DynamicModule,
     Global,
@@ -9,14 +10,16 @@ import {
     Provider,
 } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
-import { ConnectionClosedEvent, ConnectionCreatedEvent, MongoClient, MongoClientOptions } from 'mongodb';
+import { MongoClient, MongoClientOptions } from 'mongodb';
+import { Logging } from './logging';
+import { Observability } from './observability';
 import { MongoModuleAsyncOptions, MongoOptions } from './types';
 
 const DEFAULT_MONGO_NAME = 'DEFAULT_MONGO';
 const MONGO_NAME_TOKEN = 'MONGO_NAME';
 
 export const getMongoToken = (mongoName?: string) => {
-    return mongoName || DEFAULT_MONGO_NAME;
+    return mongoName ?? DEFAULT_MONGO_NAME;
 };
 
 export const InjectMongo = (mongoName?: string) => Inject(getMongoToken(mongoName));
@@ -27,9 +30,9 @@ export class MongoModule implements OnApplicationBootstrap, OnApplicationShutdow
     private static logger = new Logger(MongoModule.name);
 
     static forRoot(options: MongoOptions): DynamicModule {
-        const mongoName = options.mongoName || DEFAULT_MONGO_NAME;
-        const clientOptions = options.mongoOptions || {};
-        const observable = options.observable || false;
+        const mongoName = options.mongoName ?? DEFAULT_MONGO_NAME;
+        const clientOptions = options.mongoOptions ?? {};
+        const observable = options.observable ?? false;
 
         const ConnectionNameProvider: Provider = {
             provide: MONGO_NAME_TOKEN,
@@ -38,14 +41,15 @@ export class MongoModule implements OnApplicationBootstrap, OnApplicationShutdow
 
         const MongoClientProvider: Provider = {
             provide: this.getMongoToken(mongoName),
-            useFactory: async (): Promise<any> => {
+            inject: [{ token: MetricService, optional: true }],
+            useFactory: async (metricService?: MetricService): Promise<any> => {
                 this.logger.log(
                     'Configuring, name: %s, observable: %s, client options: %j',
                     mongoName,
                     observable,
                     clientOptions,
                 );
-                return await MongoModule.clientOn(clientOptions, options.uri, observable).connect();
+                return await MongoModule.clientOn(clientOptions, options.uri, observable, metricService).connect();
             },
         };
 
@@ -69,7 +73,7 @@ export class MongoModule implements OnApplicationBootstrap, OnApplicationShutdow
         const MongoClientProvider: Provider = {
             provide: this.getMongoToken(mongoName),
             useFactory: async (options: MongoOptions): Promise<any> => {
-                const clientOptions = options.mongoOptions || {};
+                const clientOptions = options.mongoOptions ?? {};
                 this.logger.log(
                     'Configuring, name: %s, observable: %s, client options: %j',
                     mongoName,
@@ -110,28 +114,29 @@ export class MongoModule implements OnApplicationBootstrap, OnApplicationShutdow
         return {
             provide: this.getOptionProviderToken(connectionName),
             useFactory: options.useFactory,
-            inject: options.inject || [],
+            inject: options.inject ?? [],
         };
     }
 
-    private static clientOn(mongoOptions: MongoClientOptions, uri: string, observable: boolean) {
-        if (observable) {
-            this.logger.log('Enabling observability');
+    private static clientOn(
+        mongoOptions: MongoClientOptions,
+        uri: string,
+        observable: boolean,
+        metricService?: MetricService,
+    ) {
+        if (observable === true) {
+            mongoOptions.monitorCommands = true;
         }
 
-        return new MongoClient(uri, mongoOptions)
-            .on('error', (error: Error) => {
-                this.logger.error(`An error occurred. Cause: ${error.message}`);
-            })
-            .on('close', () => {
-                this.logger.debug(`Client closed`);
-            })
-            .on('connectionCreated', (_: ConnectionCreatedEvent) => {
-                this.logger.debug('Connection created');
-            })
-            .on('connectionClosed', (event: ConnectionClosedEvent) => {
-                this.logger.debug(`Connection closed, reason: ${event.reason}`);
-            });
+        const client = new MongoClient(uri, mongoOptions);
+        new Logging().on(client);
+
+        if (observable === true) {
+            this.logger.log('Enabling observability');
+            new Observability(metricService).on(client);
+        }
+
+        return client;
     }
 
     private static getOptionProviderToken(connectionName = DEFAULT_MONGO_NAME): string {
