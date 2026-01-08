@@ -8,8 +8,8 @@ import {
     OnApplicationShutdown,
     Provider,
 } from '@nestjs/common';
-import { ConnectionClosedEvent, ConnectionCreatedEvent, MongoClient, MongoClientOptions } from 'mongodb';
 import { ModuleRef } from '@nestjs/core';
+import { ConnectionClosedEvent, ConnectionCreatedEvent, MongoClient, MongoClientOptions } from 'mongodb';
 import { MongoModuleAsyncOptions, MongoOptions } from './types';
 
 const DEFAULT_MONGO_NAME = 'DEFAULT_MONGO';
@@ -28,7 +28,8 @@ export class MongoModule implements OnApplicationBootstrap, OnApplicationShutdow
 
     static forRoot(options: MongoOptions): DynamicModule {
         const mongoName = options.mongoName || DEFAULT_MONGO_NAME;
-        const mongoOptions = options.mongoOptions || {};
+        const clientOptions = options.mongoOptions || {};
+        const observable = options.observable || false;
 
         const ConnectionNameProvider: Provider = {
             provide: MONGO_NAME_TOKEN,
@@ -38,11 +39,16 @@ export class MongoModule implements OnApplicationBootstrap, OnApplicationShutdow
         const MongoClientProvider: Provider = {
             provide: this.getMongoToken(mongoName),
             useFactory: async (): Promise<any> => {
-                return await MongoModule.clientOn(options.uri, mongoOptions).connect();
+                this.logger.log(
+                    'Configuring, name: %s, observable: %s, client options: %j',
+                    mongoName,
+                    observable,
+                    clientOptions,
+                );
+                return await MongoModule.clientOn(clientOptions, options.uri, observable).connect();
             },
         };
 
-        MongoModule.logger.log(`Configuring, name: ${mongoName}, client options: ${JSON.stringify(mongoOptions)}`);
         return {
             module: MongoModule,
             providers: [MongoClientProvider, ConnectionNameProvider],
@@ -50,7 +56,11 @@ export class MongoModule implements OnApplicationBootstrap, OnApplicationShutdow
         };
     }
 
-    static forRootAsync(options: MongoModuleAsyncOptions, mongoName = DEFAULT_MONGO_NAME): DynamicModule {
+    static forRootAsync(
+        options: MongoModuleAsyncOptions,
+        mongoName = DEFAULT_MONGO_NAME,
+        observable = false,
+    ): DynamicModule {
         const ConnectionNameProvider: Provider = {
             provide: MONGO_NAME_TOKEN,
             useValue: mongoName,
@@ -59,8 +69,14 @@ export class MongoModule implements OnApplicationBootstrap, OnApplicationShutdow
         const MongoClientProvider: Provider = {
             provide: this.getMongoToken(mongoName),
             useFactory: async (options: MongoOptions): Promise<any> => {
-                const mongoOptions = options.mongoOptions || {};
-                return await MongoModule.clientOn(options.uri, mongoOptions).connect();
+                const clientOptions = options.mongoOptions || {};
+                this.logger.log(
+                    'Configuring, name: %s, observable: %s, client options: %j',
+                    mongoName,
+                    observable,
+                    clientOptions,
+                );
+                return await MongoModule.clientOn(clientOptions, options.uri, observable).connect();
             },
             inject: [this.getOptionProviderToken(mongoName)],
         };
@@ -98,19 +114,23 @@ export class MongoModule implements OnApplicationBootstrap, OnApplicationShutdow
         };
     }
 
-    private static clientOn(uri: string, mongoOptions: MongoClientOptions) {
+    private static clientOn(mongoOptions: MongoClientOptions, uri: string, observable: boolean) {
+        if (observable) {
+            this.logger.log('Enabling observability');
+        }
+
         return new MongoClient(uri, mongoOptions)
             .on('error', (error: Error) => {
-                MongoModule.logger.error(`An error occurred. Cause: ${error.message}`);
+                this.logger.error(`An error occurred. Cause: ${error.message}`);
             })
             .on('close', () => {
-                MongoModule.logger.debug(`Client closed`);
+                this.logger.debug(`Client closed`);
             })
             .on('connectionCreated', (_: ConnectionCreatedEvent) => {
-                MongoModule.logger.debug('Connection created');
+                this.logger.debug('Connection created');
             })
             .on('connectionClosed', (event: ConnectionClosedEvent) => {
-                MongoModule.logger.debug(`Connection closed, reason: ${event.reason}`);
+                this.logger.debug(`Connection closed, reason: ${event.reason}`);
             });
     }
 

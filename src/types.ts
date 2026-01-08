@@ -5,6 +5,7 @@ export interface MongoOptions {
     uri: string;
     mongoName?: string;
     mongoOptions?: MongoClientOptions;
+    observable?: boolean;
 }
 
 export interface MongoModuleAsyncOptions extends Pick<ModuleMetadata, 'imports'> {
