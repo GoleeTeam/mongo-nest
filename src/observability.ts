@@ -47,7 +47,6 @@ export class Observability {
         return {
             'db.system': 'mongodb',
             'server.address': event.address,
-            'db.namespace': event.databaseName,
             'db.operation.name': event.commandName,
         };
     }
