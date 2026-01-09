@@ -1,11 +1,12 @@
 import { MetricService } from '@golee/nestjs-otel';
 import { Logger } from '@nestjs/common';
 import { Attributes, Histogram, ValueType } from '@opentelemetry/api';
-import { CommandFailedEvent, CommandSucceededEvent, MongoClient } from 'mongodb';
+import { CommandFailedEvent, CommandSucceededEvent, MongoClient, MongoClientOptions } from 'mongodb';
 
 export class Observability {
     private logger = new Logger(Observability.name);
     private readonly operationDuration?: Histogram<Attributes>;
+    private enabled: boolean = false;
 
     constructor(private metricService?: MetricService) {
         if (this.metricService === undefined) {
@@ -23,8 +24,15 @@ export class Observability {
         });
     }
 
+    public enableOn(mongoOptions: MongoClientOptions) {
+        this.logger.log('Enabling observability');
+
+        mongoOptions.monitorCommands = true;
+        this.enabled = true;
+    }
+
     public on(client: MongoClient) {
-        if (this.operationDuration === undefined) {
+        if (!this.enabled || this.operationDuration === undefined) {
             return;
         }
 

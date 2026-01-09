@@ -124,17 +124,16 @@ export class MongoModule implements OnApplicationBootstrap, OnApplicationShutdow
         observable: boolean,
         metricService?: MetricService,
     ) {
+        const observability = new Observability(metricService);
+
         if (observable === true) {
-            mongoOptions.monitorCommands = true;
+            observability.enableOn(mongoOptions);
         }
 
         const client = new MongoClient(uri, mongoOptions);
-        new Logging().on(client);
 
-        if (observable === true) {
-            this.logger.log('Enabling observability');
-            new Observability(metricService).on(client);
-        }
+        observability.on(client);
+        new Logging().on(client);
 
         return client;
     }
