@@ -156,7 +156,7 @@ describe('Mongo module', () => {
 
             it('should track find', async () => {
                 const mongoClient = await module.resolve<MongoClient>(getMongoToken());
-                await mongoClient.db().collection('foos').findOne({ name: 'Foo' });
+                await mongoClient.db().collection('foos').findOne();
 
                 const metric = await currentMetric();
 
@@ -165,6 +165,16 @@ describe('Mongo module', () => {
                         attributes: expect.objectContaining({ 'db.operation.name': 'find' }),
                     }),
                 );
+            });
+
+            it('should track execution time', async () => {
+                const mongoClient = await module.resolve<MongoClient>(getMongoToken());
+                await mongoClient.db().collection('foos').insertOne({ name: 'Foo' });
+                await mongoClient.db().collection('foos').findOne({ $where: 'sleep(2500) || true' });
+
+                const metric = await currentMetric();
+
+                expect(metric.dataPoints.map((x: any) => x.value.max)).toContainEqual(expect.closeTo(2.5, 1));
             });
 
             async function currentMetric() {
