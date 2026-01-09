@@ -1,0 +1,4 @@
+onlyBuiltDependencies:
+  - mongodb-memory-server
+
+sideEffectsCache: false
