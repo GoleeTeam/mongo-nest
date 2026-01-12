@@ -60,11 +60,7 @@ export class MongoModule implements OnApplicationBootstrap, OnApplicationShutdow
         };
     }
 
-    static forRootAsync(
-        options: MongoModuleAsyncOptions,
-        mongoName = DEFAULT_MONGO_NAME,
-        observable = false,
-    ): DynamicModule {
+    static forRootAsync(options: MongoModuleAsyncOptions, mongoName = DEFAULT_MONGO_NAME): DynamicModule {
         const ConnectionNameProvider: Provider = {
             provide: MONGO_NAME_TOKEN,
             useValue: mongoName,
@@ -72,17 +68,18 @@ export class MongoModule implements OnApplicationBootstrap, OnApplicationShutdow
 
         const MongoClientProvider: Provider = {
             provide: this.getMongoToken(mongoName),
-            useFactory: async (options: MongoOptions): Promise<any> => {
+            useFactory: async (options: MongoOptions, metricService?: MetricService): Promise<any> => {
                 const clientOptions = options.mongoOptions ?? {};
+                const observable = options.observable ?? false;
                 this.logger.log(
                     'Configuring, name: %s, observable: %s, client options: %j',
                     mongoName,
                     observable,
                     clientOptions,
                 );
-                return await MongoModule.clientOn(clientOptions, options.uri, observable).connect();
+                return await MongoModule.clientOn(clientOptions, options.uri, observable, metricService).connect();
             },
-            inject: [this.getOptionProviderToken(mongoName)],
+            inject: [this.getOptionProviderToken(mongoName), { token: MetricService, optional: true }],
         };
 
         const optionsProvider = this.createAsyncOptionsProvider(options, mongoName);

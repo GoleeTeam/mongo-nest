@@ -248,5 +248,44 @@ describe('Mongo module', () => {
                 expect(fooProvider.mongoClient).toBeDefined();
             });
         });
+
+        describe('observability', () => {
+            let module: TestingModule;
+
+            beforeAll(async () => {
+                module = await Test.createTestingModule({
+                    providers: [DefaultProvider],
+                    imports: [
+                        MongoModule.forRootAsync({
+                            useFactory: async () => ({
+                                uri: mongodb.getUri(),
+                                observable: true,
+                            }),
+                        }),
+                        OpenTelemetryModule.forRoot(),
+                    ],
+                })
+                    .setLogger(console)
+                    .compile();
+            });
+
+            afterAll(async () => {
+                await module.close();
+            });
+
+            it('should register duration', async () => {
+                const mongoClient = await module.resolve<MongoClient>(getMongoToken());
+                await mongoClient.db().collection('foos').countDocuments();
+
+                const metric = await currentMetric();
+
+                expect(metric.descriptor.name).toBe('db.client.operation.duration');
+                expect(metric.dataPoints).toContainEqual(
+                    expect.objectContaining({
+                        attributes: expect.objectContaining({ 'db.system': 'mongodb' }),
+                    }),
+                );
+            });
+        });
     });
 });

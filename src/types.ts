@@ -9,6 +9,6 @@ export interface MongoOptions {
 }
 
 export interface MongoModuleAsyncOptions extends Pick<ModuleMetadata, 'imports'> {
-    useFactory?: (...args: any[]) => Promise<Omit<MongoOptions, 'mongoName'>> | MongoOptions;
+    useFactory?: (...args: any[]) => Promise<MongoOptions> | MongoOptions;
     inject?: any[];
 }
