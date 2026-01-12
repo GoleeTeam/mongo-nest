@@ -30,14 +30,27 @@ class TestMetricReader extends MetricReader {
 
 describe('Mongo module', () => {
     let mongodb: MongoMemoryServer;
+    let reader: TestMetricReader;
 
     beforeAll(async () => {
         mongodb = await MongoMemoryServer.create({});
+        reader = new TestMetricReader();
+        metrics.setGlobalMeterProvider(
+            new MeterProvider({
+                readers: [reader],
+            }),
+        );
     });
 
     afterAll(async () => {
         await mongodb.stop();
+        await reader.shutdown();
     });
+
+    async function currentMetric() {
+        const { resourceMetrics } = await reader.collect();
+        return resourceMetrics.scopeMetrics[0].metrics[0];
+    }
 
     describe('forRoot', () => {
         describe('default connection name', () => {
@@ -59,7 +72,7 @@ describe('Mongo module', () => {
             });
 
             it('should create a mongo client provider', async () => {
-                const mongoClient = await module.resolve(getMongoToken());
+                const mongoClient = await module.resolve<MongoClient>(getMongoToken());
                 expect(mongoClient).toBeDefined();
             });
 
@@ -88,7 +101,7 @@ describe('Mongo module', () => {
             });
 
             it('should create a mongo client provider', async () => {
-                const mongoClient = await module.resolve(getMongoToken('foo'));
+                const mongoClient = await module.resolve<MongoClient>(getMongoToken('foo'));
                 expect(mongoClient).toBeDefined();
             });
 
@@ -100,16 +113,8 @@ describe('Mongo module', () => {
 
         describe('observability', () => {
             let module: TestingModule;
-            let reader: TestMetricReader;
 
             beforeAll(async () => {
-                reader = new TestMetricReader();
-                metrics.setGlobalMeterProvider(
-                    new MeterProvider({
-                        readers: [reader],
-                    }),
-                );
-
                 module = await Test.createTestingModule({
                     providers: [DefaultProvider],
                     imports: [
@@ -124,7 +129,6 @@ describe('Mongo module', () => {
 
             afterAll(async () => {
                 await module.close();
-                await reader.shutdown();
             });
 
             it('should register duration', async () => {
@@ -176,11 +180,6 @@ describe('Mongo module', () => {
 
                 expect(metric.dataPoints.map((x: any) => x.value.max)).toContainEqual(expect.closeTo(2.5, 1));
             });
-
-            async function currentMetric() {
-                const { resourceMetrics } = await reader.collect();
-                return resourceMetrics.scopeMetrics[0].metrics[0];
-            }
         });
     });
 
@@ -206,7 +205,7 @@ describe('Mongo module', () => {
             });
 
             it('should create a mongo client provider', async () => {
-                const mongoClient = await module.resolve(getMongoToken());
+                const mongoClient = await module.resolve<MongoClient>(getMongoToken());
                 expect(mongoClient).toBeDefined();
             });
 
@@ -240,7 +239,7 @@ describe('Mongo module', () => {
             });
 
             it('should create a mongo client provider', async () => {
-                const mongoClient = await module.resolve(getMongoToken('foo'));
+                const mongoClient = await module.resolve<MongoClient>(getMongoToken('foo'));
                 expect(mongoClient).toBeDefined();
             });
 
