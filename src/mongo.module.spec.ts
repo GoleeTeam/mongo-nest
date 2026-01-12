@@ -10,12 +10,12 @@ import { MeterProvider, MetricReader } from '@opentelemetry/sdk-metrics';
 
 @Injectable()
 class DefaultProvider {
-    constructor(@InjectMongo() public readonly mongoClient: MongoClient) {}
+    constructor(@InjectMongo() public readonly mongoClient: MongoClient) { }
 }
 
 @Injectable()
 class CustomProvider {
-    constructor(@InjectMongo('foo') public readonly mongoClient: MongoClient) {}
+    constructor(@InjectMongo('foo') public readonly mongoClient: MongoClient) { }
 }
 
 class TestMetricReader extends MetricReader {
@@ -264,9 +264,7 @@ describe('Mongo module', () => {
                         }),
                         OpenTelemetryModule.forRoot(),
                     ],
-                })
-                    .setLogger(console)
-                    .compile();
+                }).compile();
             });
 
             afterAll(async () => {
