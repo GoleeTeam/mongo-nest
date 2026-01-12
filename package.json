@@ -1,6 +1,6 @@
 {
     "name": "@golee/mongo-nest",
-    "version": "0.1.3",
+    "version": "0.1.4",
     "description": "Embrace the freedom to use mongodb on nest without necessarily resorting to mongoose 🍃",
     "author": "Golee Team <dev@golee.it>",
     "license": "Apache-2.0",
