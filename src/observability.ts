@@ -3,11 +3,11 @@ import { Logger } from '@nestjs/common';
 import { Attributes, Histogram, ValueType } from '@opentelemetry/api';
 import {
     ATTR_DB_OPERATION_NAME,
-    ATTR_DB_SYSTEM,
+    ATTR_DB_SYSTEM_NAME,
     ATTR_ERROR_TYPE,
     ATTR_SERVER_ADDRESS,
     METRIC_DB_CLIENT_OPERATION_DURATION,
-} from '@opentelemetry/semantic-conventions/incubating';
+} from '@opentelemetry/semantic-conventions';
 import { CommandFailedEvent, CommandSucceededEvent, MongoClient, MongoClientOptions } from 'mongodb';
 
 const DB_SYSTEM_VALUE_MONGODB = 'mongodb' as const;
@@ -24,7 +24,7 @@ export class Observability {
         }
 
         // see:
-        // - reference: https://github.com/open-telemetry/semantic-conventions/blob/v1.26.0/docs/database/database-metrics.md#metric-dbclientoperationduration
+        // - reference: https://github.com/open-telemetry/semantic-conventions/blob/v1.36.0/docs/database/database-metrics.md#metric-dbclientoperationduration
         // - sample: https://github.com/open-telemetry/opentelemetry-js-contrib/blob/main/packages/instrumentation-pg/src/instrumentation.ts
         this.operationDuration = this.metricService.getHistogram(
             METRIC_DB_CLIENT_OPERATION_DURATION, //'db.client.operation.duration',
@@ -69,7 +69,7 @@ export class Observability {
 
     private describe(event: CommandSucceededEvent | CommandFailedEvent) {
         return {
-            [ATTR_DB_SYSTEM]: DB_SYSTEM_VALUE_MONGODB,
+            [ATTR_DB_SYSTEM_NAME]: DB_SYSTEM_VALUE_MONGODB,
             [ATTR_SERVER_ADDRESS]: event.address,
             [ATTR_DB_OPERATION_NAME]: event.commandName,
         };

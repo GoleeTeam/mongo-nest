@@ -10,12 +10,12 @@ import { MeterProvider, MetricReader } from '@opentelemetry/sdk-metrics';
 
 @Injectable()
 class DefaultProvider {
-    constructor(@InjectMongo() public readonly mongoClient: MongoClient) { }
+    constructor(@InjectMongo() public readonly mongoClient: MongoClient) {}
 }
 
 @Injectable()
 class CustomProvider {
-    constructor(@InjectMongo('foo') public readonly mongoClient: MongoClient) { }
+    constructor(@InjectMongo('foo') public readonly mongoClient: MongoClient) {}
 }
 
 class TestMetricReader extends MetricReader {
@@ -140,7 +140,7 @@ describe('Mongo module', () => {
                 expect(metric.descriptor.name).toBe('db.client.operation.duration');
                 expect(metric.dataPoints).toContainEqual(
                     expect.objectContaining({
-                        attributes: expect.objectContaining({ 'db.system': 'mongodb' }),
+                        attributes: expect.objectContaining({ 'db.system.name': 'mongodb' }),
                     }),
                 );
             });
@@ -280,7 +280,7 @@ describe('Mongo module', () => {
                 expect(metric.descriptor.name).toBe('db.client.operation.duration');
                 expect(metric.dataPoints).toContainEqual(
                     expect.objectContaining({
-                        attributes: expect.objectContaining({ 'db.system': 'mongodb' }),
+                        attributes: expect.objectContaining({ 'db.system.name': 'mongodb' }),
                     }),
                 );
             });
