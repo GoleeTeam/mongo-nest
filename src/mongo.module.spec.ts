@@ -133,6 +133,7 @@ describe('Mongo module', () => {
 
             it('should register duration', async () => {
                 const mongoClient = await module.resolve<MongoClient>(getMongoToken());
+                // await mongoClient.db().collection('foos').insertOne({ name: 'Foo' });
                 await mongoClient.db().collection('foos').countDocuments();
 
                 const metric = await currentMetric();
@@ -140,7 +141,10 @@ describe('Mongo module', () => {
                 expect(metric.descriptor.name).toBe('db.client.operation.duration');
                 expect(metric.dataPoints).toContainEqual(
                     expect.objectContaining({
-                        attributes: expect.objectContaining({ 'db.system.name': 'mongodb' }),
+                        attributes: expect.objectContaining({
+                            'db.system.name': 'mongodb',
+                            'db.namespace': expect.stringMatching(new RegExp('(test|undefined)')), // backward compatibility for mongo 4.x version
+                        }),
                     }),
                 );
             });

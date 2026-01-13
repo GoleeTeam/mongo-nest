@@ -2,6 +2,7 @@ import { MetricService } from '@golee/nestjs-otel';
 import { Logger } from '@nestjs/common';
 import { Attributes, Histogram, ValueType } from '@opentelemetry/api';
 import {
+    ATTR_DB_NAMESPACE,
     ATTR_DB_OPERATION_NAME,
     ATTR_DB_SYSTEM_NAME,
     ATTR_ERROR_TYPE,
@@ -70,6 +71,7 @@ export class Observability {
     private describe(event: CommandSucceededEvent | CommandFailedEvent) {
         return {
             [ATTR_DB_SYSTEM_NAME]: DB_SYSTEM_VALUE_MONGODB,
+            [ATTR_DB_NAMESPACE]: (event as any).databaseName ?? 'undefined',
             [ATTR_SERVER_ADDRESS]: event.address,
             [ATTR_DB_OPERATION_NAME]: event.commandName,
         };
