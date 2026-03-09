@@ -25,6 +25,7 @@
         "test:coverage": "jest --coverage",
         "prepublishOnly": "npm run build",
         "prepare": "husky",
+        "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
         "check": "cspell lint --quiet src/**/*ts"
     },
     "peerDependencies": {
