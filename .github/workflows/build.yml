@@ -7,13 +7,11 @@ on:
 
 jobs:
   build:
-    name: "Build (Node ${{ matrix.node-version }} - Nest ${{ matrix.nest-version }} - Mongo ${{ matrix.mongo-version }})"
+    name: "Build (Mongo ${{ matrix.mongo-version }})"
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
-        nest-version: [^9.0.0, ^10.0.0] # ^8.0.0 unsupported
         mongo-version: [^4.0.0, ^5.0.0, ^6.0.0]
 
     env:
@@ -28,10 +26,10 @@ jobs:
         with:
           version: latest
 
-      - name: "Setup: Node ${{ matrix.node-version }}"
+      - name: "Setup: Node"
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 20
           cache: "pnpm"
 
       - name: Dependencies
@@ -40,9 +38,6 @@ jobs:
       - name: "Dependencies: peer"
         run: |
           pnpm install \
-            @nestjs/common@${{ matrix.nest-version }} \
-            @nestjs/core@${{ matrix.nest-version }} \
-            @nestjs/testing@${{ matrix.nest-version }} \
             @golee/mongo-nest mongodb@${{matrix.mongo-version}}
 
       - name: Build
