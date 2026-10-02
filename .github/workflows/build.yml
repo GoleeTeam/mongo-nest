@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     name: "Build (Mongo ${{ matrix.mongo-version }})"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
@@ -54,7 +54,7 @@ jobs:
 
   publish:
     name: Publish
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: build
 
     permissions:
